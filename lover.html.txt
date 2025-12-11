@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>赛博粒子圣诞树</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        canvas {
+            display: block;
+        }
+        .text-container {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: "Arial Black", sans-serif;
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 0 10px #fff, 0 0 20px #ff99cc;
+            opacity: 0;
+            animation: fadeIn 3s ease-in-out forwards;
+            animation-delay: 8s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="christmasTree"></canvas>
+    <div class="text-container">小雨同学 我爱你</div>
+
+    <script>
+        const canvas = document.getElementById('christmasTree');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        // 初始化画布尺寸
+        function resizeCanvas() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // 粒子类
+        class Particle {
+            constructor(x, y, color, size, speed) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = size;
+                this.speed = speed;
+                this.alpha = 1;
+                this.decay = 0.01 + Math.random() * 0.02;
+            }
+            update() {
+                this.alpha -= this.decay;
+                this.y -= this.speed;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+            isDead() {
+                return this.alpha <= 0 || this.y < 0;
+            }
+        }
+
+        // 圣诞树类
+        class ChristmasTree {
+            constructor() {
+                this.particles = [];
+                this.starParticles = [];
+                this.fireworkParticles = [];
+                this.treeLayers = 8;
+                this.layerHeight = height * 0.1;
+                this.centerX = width / 2;
+                this.baseY = height * 0.8;
+                this.isTreeComplete = false;
+                this.animationFrame = 0;
+                this.textShown = false;
+            }
+
+            // 生成圣诞树粒子
+            generateTreeParticles() {
+                if (this.animationFrame < this.treeLayers * 30) {
+                    const layer = Math.floor(this.animationFrame / 30);
+                    if (layer < this.treeLayers) {
+                        const radius = (this.treeLayers - layer) * (width * 0.15 / this.treeLayers);
+                        const particlesPerLayer = 100 + layer * 50;
+                        const color = `hsl(${Math.random() * 60 + 100}, 100%, 70%)`;
+                        for (let i = 0; i < particlesPerLayer; i++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const x = this.centerX + Math.cos(angle) * radius * Math.random();
+                            const y = this.baseY - layer * this.layerHeight;
+                            this.particles.push(new Particle(x, y, color, 2 + Math.random() * 2, 1 + Math.random() * 2));
+                        }
+                    }
+                    this.animationFrame++;
+                } else {
+                    if (!this.isTreeComplete) {
+                        this.isTreeComplete = true;
+                        this.createStar();
+                        this.createFireworks();
+                    }
+                }
+            }
+
+            // 生成树顶星
+            createStar() {
+                const starX = this.centerX;
+                const starY = this.baseY - this.treeLayers * this.layerHeight - 30;
+                for (let i = 0; i < 100; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 50;
+                    const x = starX + Math.cos(angle) * distance;
+                    const y = starY + Math.sin(angle) * distance;
+                    this.starParticles.push(new Particle(x, y, 'white', 1 + Math.random() * 1, 0.5 + Math.random() * 1));
+                }
+            }
+
+            // 生成烟花
+            createFireworks() {
+                setTimeout(() => {
+                    for (let i = 0; i < 3; i++) {
+                        const fireworkX = width * 0.2 + Math.random() * width * 0.6;
+                        const fireworkY = height * 0.1 + Math.random() * height * 0.3;
+                        const firework = new Particle(fireworkX, fireworkY, 'gold', 3, 5);
+                        this.fireworkParticles.push(firework);
+                    }
+                }, 2000);
+            }
+
+            // 爆炸效果
+            explodeFirework(particle) {
+                const colors = ['gold', 'red', 'green', 'blue', 'purple'];
+                for (let i = 0; i < 200; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 2 + Math.random() * 3;
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const x = particle.x;
+                    const y = particle.y;
+                    this.fireworkParticles.push(new Particle(x, y, color, 2, speed));
+                }
+            }
+
+            // 更新所有粒子
+            updateParticles() {
+                // 更新圣诞树粒子
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    this.particles[i].update();
+                    if (this.particles[i].isDead()) {
+                        this.particles.splice(i, 1);
+                    } else {
+                        this.particles[i].draw();
+                    }
+                }
+
+                // 更新星粒子
+                for (let i = this.starParticles.length - 1; i >= 0; i--) {
+                    this.starParticles[i].update();
+                    if (this.starParticles[i].isDead()) {
+                        this.starParticles.splice(i, 1);
+                    } else {
+                        this.starParticles[i].draw();
+                    }
+                }
+
+                // 更新烟花粒子
+                for (let i = this.fireworkParticles.length - 1; i >= 0; i--) {
+                    const p = this.fireworkParticles[i];
+                    p.update();
+                    if (p.size > 2) { // 未爆炸的烟花
+                        p.draw();
+                        if (p.y < height * 0.2) {
+                            this.explodeFirework(p);
+                            this.fireworkParticles.splice(i, 1);
+                        }
+                    } else { // 爆炸后的烟花粒子
+                        if (p.isDead()) {
+                            this.fireworkParticles.splice(i, 1);
+                        } else {
+                            p.draw();
+                        }
+                    }
+                }
+            }
+
+            animate() {
+                ctx.clearRect(0, 0, width, height);
+                this.generateTreeParticles();
+                this.updateParticles();
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        const christmasTree = new ChristmasTree();
+        christmasTree.animate();
+    </script>
+</body>
+</html>
