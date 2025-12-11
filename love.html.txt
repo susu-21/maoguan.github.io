@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>专属圣诞树</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            min-height: 100vh;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        /* 圣诞树树冠 */
+        .tree {
+            position: relative;
+        }
+        .tree-layer {
+            width: 0;
+            height: 0;
+            border-left: 60px solid transparent;
+            border-right: 60px solid transparent;
+            border-bottom: 80px solid #2ecc71;
+            margin: -10px auto;
+        }
+        .tree-layer:nth-child(1) {
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 40px solid #27ae60;
+        }
+        .tree-layer:nth-child(2) {
+            border-left: 45px solid transparent;
+            border-right: 45px solid transparent;
+            border-bottom: 60px solid #2ecc71;
+        }
+        /* 树干 */
+        .tree-trunk {
+            width: 20px;
+            height: 40px;
+            background-color: #8b4513;
+            margin: 0 auto;
+        }
+        /* 装饰彩灯 */
+        .ornament {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: blink 1.5s infinite alternate;
+        }
+        @keyframes blink {
+            from { opacity: 0.5; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1.2); }
+        }
+        /* 顶部星星 */
+        .star {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            color: #f1c40f;
+            animation: spin 5s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: translateX(-50%) rotate(360deg); }
+        }
+        /* 文字滚动 */
+        .text {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            animation: scroll 10s linear infinite;
+        }
+        @keyframes scroll {
+            from { transform: translateY(100vh); }
+            to { transform: translateY(-100%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="tree">
+        <div class="star">★</div>
+        <div class="text">我爱你苗晨雨</div>
+        <div class="tree-layer"></div>
+        <div class="tree-layer"></div>
+        <div class="tree-layer"></div>
+        <div class="tree-trunk"></div>
+    </div>
+
+    <script>
+        // 随机生成彩灯装饰
+        const tree = document.querySelector('.tree');
+        const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+        const ornamentCount = 15;
+
+        for (let i = 0; i < ornamentCount; i++) {
+            const ornament = document.createElement('div');
+            ornament.classList.add('ornament');
+            ornament.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            ornament.style.left = `${Math.random() * 100}%`;
+            ornament.style.top = `${Math.random() * 80}%`;
+            tree.appendChild(ornament);
+        }
+    </script>
+</body>
+</html>
